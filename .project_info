@@ -1,0 +1,8 @@
+Title:<interdependent-networks-attacks>
+Objective:<Simulate attacks on physical-logical interdependent networks>
+Description:<This project will contain the code used to perform the attack simulations over physical-logical interdependent networks as specified in the model presented by Bachmann et al. IJCIP 100483 (2022). These simulations aim to simulate cascading failures over this interdependent network model to obtain the GL after the networks have stabilized.>
+Members:<Ivana Bachmann>
+Keywords: 
+Start Date: <2024-12-02>
+End Date: <YYYY-MM-DD> (estimated)
+Status: <Starting>
