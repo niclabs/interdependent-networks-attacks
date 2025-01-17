@@ -62,14 +62,32 @@ def get_different_nodes(csv_file):
 
     return node_names
 
-def set_graph_from_csv(csv_file, graph=None):
+def set_graph_from_csv(csv_file, graph=None) -> igraph.Graph:
+    """Creates an igraph graph using data contained in a .csv file.
+
+    :param csv_file: str
+        string containing the complete file path to the .csv file to read.
+        The expected format is a list of edges as "node1,node2", where the
+        first character of the node name indicates the node type. Nodes
+        can be physical (start with a 'p') or logical ('l')
+    :param graph: igraph.Graph or None
+        if not None, new nodes are edges are added onto it
+    :return: igraph.Graph
+        a graph or network containing the nodes and edges specified in the
+        .csv file received
+    """
+    #if no igraph.Graph object is received a new one is created
     if graph is None:
+        # get node names
         nodes_names = get_different_nodes(csv_file)
+        # create graph object
         graph = igraph.Graph(len(nodes_names))
+        # name nodes
         graph.vs['name'] = nodes_names
 
     with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar=',')
+        # add edges one by one
         for row in reader:
             first = row[0]
             second = row[1]
