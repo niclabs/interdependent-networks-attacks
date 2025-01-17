@@ -94,7 +94,16 @@ def set_graph_from_csv(csv_file, graph=None) -> igraph.Graph:
             graph.add_edge(first, second)
     return graph
 
-def get_list_of_coordinates_from_csv(csv_file):
+def get_list_of_coordinates_from_csv(csv_file: str) -> dict:
+    """Return the coordinates associated to physical nodes.
+
+    :param csv_file: str
+        string containing the complete file path to the .csv file to read.
+        The expected format is node_name,x_coordinate,y_coordinate.
+    :return: dict
+        dictionary containing the coordinates of each node. The node name
+        corresponds to the key, and the coordinate tuple to the value.
+    """
     coord_dict = {}
 
     with open(csv_file, 'r') as csvfile:
@@ -102,6 +111,6 @@ def get_list_of_coordinates_from_csv(csv_file):
         for row in reader:
             x = float(row[1])
             y = float(row[2])
-            coord_dict[row[0]] = [x, y]
+            coord_dict[row[0]] = (x, y)
 
     return coord_dict
