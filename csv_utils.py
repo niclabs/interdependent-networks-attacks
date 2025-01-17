@@ -26,8 +26,8 @@ def get_different_nodes(csv_file):
     :return: list
         a list with all the different node names in the .csv file
     """
-    node_dict = {}
-    node_dict_aux = {}
+    type_1_node_set = set()
+    type_2_node_set = set()
     interlink_flag = False
     with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar=',')
@@ -38,20 +38,28 @@ def get_different_nodes(csv_file):
                 interlink_flag = True
             # for interlinks we use different sets
             if interlink_flag:
-                node_dict[row[0]] = ""
-                node_dict_aux[row[1]] = ""
+                type_1_node_set.add(row[0])
+                type_2_node_set.add(row[1])
             #otherwise the same set is used
             else:
-                node_dict[row[0]] = ""
-                node_dict[row[1]] = ""
-    node_names = []
+                type_1_node_set.add(row[0])
+                type_1_node_set.add(row[1])
+
     # node names are transformed to lists accordingly
     if interlink_flag:
-        node_names = list(node_dict.keys()) + list(node_dict_aux.keys())
+        #convert sets to lists
+        list_nodes_type_1 = list(type_1_node_set)
+        list_nodes_type_2 = list(type_2_node_set)
+        #sort using numbers within the node name
+        list_nodes_type_1.sort(key=lambda x: int(x[1::]))
+        list_nodes_type_2.sort(key=lambda x: int(x[1::]))
+        node_names = list_nodes_type_1 + list_nodes_type_2
     else:
-        prefix_name = list(node_dict.keys())[0][0]
-        for k in range(len(node_dict.keys())):
-            node_names.append("{}{}".format(prefix_name, k))
+        # convert set to lists
+        node_names = list(type_1_node_set)
+        # sort using numbers within the node name
+        node_names.sort(key=lambda x: int(x[1::]))
+
     return node_names
 
 def set_graph_from_csv(csv_file, graph=None):
