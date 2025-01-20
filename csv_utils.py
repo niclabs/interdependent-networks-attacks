@@ -1,4 +1,4 @@
-""" Recurrent funtions to process csv data
+""" Recurrent functions to process csv data
 
 This script contains functions to read data from .csv files that contain
 information regarding networks, in particular interdependent networks.
@@ -10,7 +10,7 @@ functions:
     * get_different_nodes - returns a list with the different node names
     * set_graph_from_csv - returns an igraph graph created with the data
     * get_list_of_coordinates_from_csv - returns dictionary with the
-    coordinates associated to each node (for physically embbeded networks)
+    coordinates associated to each node (for physically embedded networks)
 """
 import csv
 import igraph
