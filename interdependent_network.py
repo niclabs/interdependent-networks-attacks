@@ -1,11 +1,27 @@
+""" Class to process and manage interdependent networks
+
+Tha class InterdependentGraph manages the creation and setup of
+interdependent networks. It also manages node deletion or attack and their
+subsequent cascading failures.
+
+To attack an InterdependentNetwork object using different attack
+strategies, an AbstractAttack object must be used as visitor
+(visitor pattern).
+
+To properly function the igraph library must be available, as well as csv.
+"""
 import igraph
 import csv
-import time
 import csv_utils
 
 class InterdependentGraph(object):
 
     def __init__(self):
+        """ InterdependentGraph constructor
+
+        The constructor creates an empty InterdependentGraph object as it
+        must be properly set up afterward.
+        """
         self.interactions_network = None
         self.logical_network = None
         self.physical_network = None
@@ -13,9 +29,47 @@ class InterdependentGraph(object):
         self.physical_providers = None
         self.initial_number_of_functional_logical_nodes = -1
         self.current_number_of_functional_logical_nodes = -1
+        self.physical_rosetta = dict()
+        self.logical_rosetta = dict()
+        self.inner_inter_rosetta = dict()
 
-    def create_physical_logical_network_from_csv(self, logical_network_csv_file_path, physical_network_csv_file_path, interactions_network_csv_file_path, nodes_title, providers_csv="",
-                        logical_provider_nodes=(), physical_provider_nodes=()):
+    def create_physical_logical_network_from_csv(self, logical_network_csv_file_path, physical_network_csv_file_path, interactions_network_csv_file_path, pnodes_data, providers_csv="",
+                                                 logical_provider_nodes=(), physical_provider_nodes=()):
+        """Fills an InterdependentGraph object using .csv files
+
+        :param logical_network_csv_file_path: str
+            string containing the complete file path to the .csv that
+            contains the logical network structure. The expected format is
+            a list of edges as "node1,node2", where the first character is
+            an 'l'.
+        :param physical_network_csv_file_path: str
+            string containing the complete file path to the .csv that
+            contains the physical network structure. The expected format
+            is a list of edges as "node1,node2", where the first character
+            is an 'l'.
+        :param interactions_network_csv_file_path:
+            string containing the complete file path to the .csv file that
+            contains the interlinks between the physical and logical
+            network. The expected format is a list of edges as
+            "node1,node2", where the first character can be either 'p' or
+            'l'.
+        :param pnodes_data: str
+            string containing the complete file path to the .csv that
+            contains the physical node names associated to their
+            coordinates in space.
+        :param providers_csv: str
+            string containing the complete file path to the .csv that
+            contains the logical and physical nodes considered to be
+            provider nodes.
+
+            Can default to the empty string
+        :param logical_provider_nodes: tuple
+            tuple containing the names of the logical provider nodes.
+            Should be used only if providers_csv is an empy str.
+        :param physical_provider_nodes: tuple
+            tuple containing the names of the physical provider nodes.
+            Should be used only if providers_csv is an empy str.
+        """
         x = 0
         y = 1
         # Create logical network from csv file
@@ -23,7 +77,7 @@ class InterdependentGraph(object):
 
         # Create physical network from csv file
         self.physical_network = csv_utils.set_graph_from_csv(physical_network_csv_file_path)
-        coord_dict = csv_utils.get_list_of_coordinates_from_csv(nodes_title)
+        coord_dict = csv_utils.get_list_of_coordinates_from_csv(pnodes_data)
         x_positions = []
         y_positions = []
         for i in range(len(self.physical_network.vs)):
@@ -38,6 +92,7 @@ class InterdependentGraph(object):
         self.interactions_network = csv_utils.set_graph_from_csv(interactions_network_csv_file_path)
 
         # set providers from file
+        # TODO: check if providers_csv should continue to be "optional"
         if providers_csv != "":
             logical_provider_nodes = []
             physical_provider_nodes = []
@@ -55,7 +110,6 @@ class InterdependentGraph(object):
                         if type_of_provider == "physical":
                             physical_provider_nodes.append(str(row[0]))
 
-        # set providers differently if logical_directed_network != "
         logical_network_name_list = self.logical_network.vs['name']
         physical_net_name_list = self.physical_network.vs['name']
         type_list = []
@@ -74,7 +128,8 @@ class InterdependentGraph(object):
         # TODO: This should count nodes with a path to a provider. The following is true only if the network has one connected component
         self.initial_number_of_functional_logical_nodes = \
             len([a for a in self.logical_network.vs if self.logical_network.degree(a.index) > 0])
-        return self
+
+        self._set_rosettas()
 
     def get_logical_network(self):
         return self.logical_network
@@ -105,6 +160,19 @@ class InterdependentGraph(object):
     def set_interlinks(self, interlinks_network):
         self.interactions_network = interlinks_network
         return self
+
+    @staticmethod
+    def _get_rosetta_from_network(network):
+        roseta = {}
+        for i in range(len(network.vs)):
+            node_name = network.vs[i]['name']
+            roseta[node_name] = i
+        return roseta
+
+    def _set_rosettas(self):
+        self.physical_rosetta = self._get_rosetta_from_network(self.physical_network)
+        self.logical_rosetta = self._get_rosetta_from_network(self.logical_network)
+        self.inner_inter_rosetta = self._get_rosetta_from_network(self.interactions_network)
 
     def create_from_graphs(self, logical_graph: igraph.Graph, logical_provider_nodes, physical_graph: igraph.Graph, physical_provider_nodes,
                            interactions_graph: igraph.Graph):
@@ -140,6 +208,8 @@ class InterdependentGraph(object):
         # save initial set of functional nodes
         self.initial_number_of_functional_logical_nodes = \
             len([a for a in self.logical_network.vs if self.logical_network.degree(a.index) > 0])
+
+        self._set_rosettas()
         return self
 
     def remove_nodes(self, nodes_to_delete: [str,str]):
