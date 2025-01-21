@@ -132,37 +132,91 @@ class InterdependentGraph(object):
         self._set_rosettas()
 
     def get_logical_network(self):
+        """Returns the logical network of the InterdependentGraph object
+
+        :return: igraph.Graph
+        """
         return self.logical_network
 
     def add_edges_to_physical_network(self, edge_tuple_array):
+        """Function to add physical links or edges
+
+        :param edge_tuple_array: list
+            corresponds to a list of size 2 tuples. Each tuple represents
+            a new physical link to be added.
+        """
         self.physical_network.add_edges(edge_tuple_array)
 
     def get_logical_providers(self):
+        """ Returns list of logical provider nodes
+
+        :return: list
+        """
         return self.logical_providers
 
     def get_physical_network(self):
+        """ Returns the physical network of the InterdependentGraph object
+
+        :return: igraph.Graph
+        """
         return self.physical_network
 
     def get_physical_providers(self):
+        """Returns list of physical provider nodes
+
+        :return: list
+        """
         return self.physical_providers
 
     def get_interlinks(self):
+        """ Returns the interlinks network of the InterdependentGraph
+
+        :return: igraph.Graph
+        """
         return self.interactions_network
 
-    def set_logical_network(self, logical_network):
+    def set_logical_network(self, logical_network: igraph.Graph):
+        """ Assigns an existing logical network to the InterdependentGraph
+
+        :param logical_network: igraph.Graph
+            contains a logical network with all the expected data
+        """
         self.logical_network = logical_network
-        return self
 
     def set_physical_network(self, physical_network):
+        """ Assigns an existing physical network to the current object
+
+        :param physical_network: igraph.Graph
+            contains a physical network with all the expected data
+        """
         self.physical_network = physical_network
-        return self
 
     def set_interlinks(self, interlinks_network):
+        """ Assigns an existing interlinks network to the current object
+
+        :param interlinks_network:
+            contains an interlinks network with all the expected data
+        """
         self.interactions_network = interlinks_network
-        return self
 
     @staticmethod
-    def _get_rosetta_from_network(network):
+    def _get_rosetta_from_network(network: igraph.Graph):
+        """Generates a dictionary to assign a number to each network node
+
+        This staticmethod is meant for internal use only. It associates a
+        number to each node present at the current state of the network
+        received. The objective is to keep track of nodes as they are
+        eliminated after an attack. Although igraph assigns an index to
+        each node, once a node is deleted, the indices are adjusted so
+        only consecutive numbers are considered. This means that a node
+        index could change within the igraph.Graph object once another
+        node is deleted.
+
+        :param network: igraph.Graph
+            must contain a network where each node has an assigned name
+        :return: dict
+            dictionary associating each node name to a number
+        """
         roseta = {}
         for i in range(len(network.vs)):
             node_name = network.vs[i]['name']
@@ -170,13 +224,30 @@ class InterdependentGraph(object):
         return roseta
 
     def _set_rosettas(self):
+        """Set translation rosettas for each network
+
+        This method is meant for internal use only.
+        """
         self.physical_rosetta = self._get_rosetta_from_network(self.physical_network)
         self.logical_rosetta = self._get_rosetta_from_network(self.logical_network)
         self.inner_inter_rosetta = self._get_rosetta_from_network(self.interactions_network)
 
-    def create_from_graphs(self, logical_graph: igraph.Graph, logical_provider_nodes, physical_graph: igraph.Graph, physical_provider_nodes,
+    def create_from_graphs(self, logical_graph: igraph.Graph, logical_provider_nodes: list, physical_graph: igraph.Graph, physical_provider_nodes: list,
                            interactions_graph: igraph.Graph):
+        """Creates an InterdependentGraph object from igraph.Graph objects
 
+        :param logical_graph: igraph.Graph
+            contains the logical network
+        :param logical_provider_nodes: list
+            contains the names of logical provider nodes
+        :param physical_graph: igraph.Graph
+            contains the physical network
+        :param physical_provider_nodes: list
+            contains the names of physical provider nodes
+        :param interactions_graph: igraph.Graph
+            contains the interlinks graph
+        """
+        # TODO: Do we need this function?
         # TODO: should suffice using "object.copy()"?
         # save logical graph (create copy from original)
         self.logical_network = igraph.Graph([e.tuple for e in logical_graph.es])
@@ -212,9 +283,23 @@ class InterdependentGraph(object):
         self._set_rosettas()
         return self
 
-    def remove_nodes(self, nodes_to_delete: [str,str]):
+    def remove_nodes(self, nodes_to_delete):
+        """Removes the specified nodes and simulates the cascading failure
+
+        This function handles the effect of removing a set of nodes from
+        the InterdependentGraph. To do so, it simulates the resulting
+        cascading failure until the system fully stabilizes.
+
+        :param nodes_to_delete: list
+            contains the names of the nodes to be deleted
+        """
         # TODO: Get code from old tests_library.attack_nodes_test
         pass
 
     def get_ratio_of_functional_logical_nodes(self):
+        """Returns the current rate of functional logical nodes or G_L
+
+        :return: float
+            ratio of current functional logical nodes
+        """
         return self.current_number_of_functional_logical_nodes / self.initial_number_of_functional_logical_nodes
