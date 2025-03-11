@@ -4,11 +4,11 @@ The class AbstractAttack is an abstract class mean to provide for a
 template for every type of attack to be performed over an
 InterdependentGraph object.
 """
-
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from interdependent_network import InterdependentGraph
+import interdependent_network as ig
 
 class AbstractAttack(ABC):
     @abstractmethod
-    def attack_interdependent_network(self, interdependent_network: InterdependentGraph) -> None:
+    def attack_interdependent_network(self, interdependent_graph: ig.InterdependentGraph) -> None:
         pass
