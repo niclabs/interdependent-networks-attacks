@@ -10,5 +10,5 @@ from interdependent_network import InterdependentGraph
 
 class AbstractAttack(ABC):
     @abstractmethod
-    def attack_interdependent_network(self, interdependent_network: InterdependentGraph):
+    def attack_interdependent_network(self, interdependent_network: InterdependentGraph) -> None:
         pass
