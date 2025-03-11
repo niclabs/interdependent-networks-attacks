@@ -5,15 +5,16 @@ interdependent networks. It also manages node deletion or attack and their
 subsequent cascading failures.
 
 To attack an InterdependentNetwork object using different attack
-strategies, an AbstractAttack object must be used as visitor
-(visitor pattern).
+strategies, an AbstractAttack object must be used (double dispatch)
 
 To properly function the igraph library must be available, as well as csv.
 """
+from __future__ import annotations
 import igraph
 import csv
 import csv_utils
 import numpy
+from abstract_attack import AbstractAttack
 
 class InterdependentGraph(object):
 
@@ -508,3 +509,6 @@ class InterdependentGraph(object):
             ratio of current functional logical nodes
         """
         return self.current_number_of_functional_logical_nodes / self.initial_number_of_functional_logical_nodes
+
+    def attack(self, attack_strategy: AbstractAttack):
+        attack_strategy.attack_interdependent_network(self)
