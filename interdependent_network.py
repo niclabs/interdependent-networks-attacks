@@ -311,8 +311,17 @@ class InterdependentGraph(object):
 
         :param nodes_to_delete: list
             contains the names of the nodes to be deleted
+        :return GL_per_iteration: list
+            contains the GL value of each iteration of the cascading
+            failure triggered by the removal of the nodes in
+            nodes_to_delete. The length of the list corresponds to the
+            Number Of Iterations or NOI measure.
         """
-        # TODO: Get code from old tests_library.attack_nodes_test
+        #####
+        # TODO READ FIRST: This method is incomplete. its proper
+        #  functioning must be revised.
+        #####
+
         phys_nodes_to_delete = nodes_to_delete
         logic_nodes_to_delete = []
 
@@ -435,6 +444,7 @@ class InterdependentGraph(object):
 
             number_of_iterations += 1
             GL_per_iteration.append(numpy.round(1 - len(current_logic_nodes_to_delete) / 300.0, 4))
+        return GL_per_iteration
 
     @staticmethod
     def _get_nodes_lost_by_cc(network, list_input, providers, rosetta):
