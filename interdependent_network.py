@@ -320,6 +320,7 @@ class InterdependentGraph(object):
         #####
         # TODO READ FIRST: This method is incomplete. its proper
         #  functioning must be revised.
+        #  - logic nodes removed should be returned
         #####
 
         phys_nodes_to_delete = nodes_to_delete
@@ -521,4 +522,4 @@ class InterdependentGraph(object):
         return self.current_number_of_functional_logical_nodes / self.initial_number_of_functional_logical_nodes
 
     def attack(self, attack_strategy: AbstractAttack):
-        attack_strategy.attack_interdependent_network(self)
+        attack_strategy.attack(self)
