@@ -10,5 +10,5 @@ import interdependent_network as ig
 
 class AbstractAttack(ABC):
     @abstractmethod
-    def attack_interdependent_network(self, interdependent_graph: ig.InterdependentGraph) -> None:
+    def attack(self, interdependent_graph: ig.InterdependentGraph) -> None:
         pass
