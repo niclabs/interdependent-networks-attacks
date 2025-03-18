@@ -37,8 +37,8 @@ class InterdependentGraph(object):
         self.inter_rosetta_logical = dict()
         self.inner_inter_rosetta = dict()
 
-    def create_physical_logical_network_from_csv(self, logical_network_csv_file_path, physical_network_csv_file_path, interactions_network_csv_file_path, pnodes_data, providers_csv="",
-                                                 logical_provider_nodes=(), physical_provider_nodes=()):
+    def create_from_csv(self, logical_network_csv_file_path, physical_network_csv_file_path, interactions_network_csv_file_path, pnodes_data, providers_csv="",
+                        logical_provider_nodes=(), physical_provider_nodes=()):
         """Fills an InterdependentGraph object using .csv files
 
         :param logical_network_csv_file_path: str
