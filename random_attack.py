@@ -5,7 +5,7 @@ import random
 
 class PhysicalRandomAttack(AbstractAttack):
 
-    def attack(self, interdependent_graph: ig.InterdependentGraph) -> None:
+    def attack(self, interdependent_graph: ig.InterdependentGraph):
         # FLAG TODO: check if necessary
         use_increasing_sample = True
 
