@@ -36,7 +36,6 @@ class PhysicalRandomAttack(AbstractAttack):
             else:
                 list_of_nodes_to_attack = random.sample(node_sample, i)
             GL_per_iteration = interdependent_graph.remove_physical_nodes(list_of_nodes_to_attack)
-            print(GL_per_iteration)
             gl_list.append(GL_per_iteration)
 
         #TODO: should this return??
