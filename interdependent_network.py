@@ -36,6 +36,19 @@ class InterdependentGraph(object):
         self.inter_rosetta_physical = dict()
         self.inter_rosetta_logical = dict()
         self.inner_inter_rosetta = dict()
+        self.current_network_state = dict()
+
+    def reset_cascading_failure_state(self):
+        self.current_network_state = self._initialize_network_state()
+
+    def _initialize_network_state(self):
+        n_phys_nodes = len(self.physical_network.vs['name'])
+        n_logic_nodes = len(self.logical_network.vs['name'])
+        n_inter_nodes = len(self.interactions_network.vs['name'])
+        network_state_dict = {"phys_input": [True for i in range(n_phys_nodes)],
+                              "logic_input": [True for i in range(n_logic_nodes)],
+                              "inter_input": [True for i in range(n_inter_nodes)]}
+        return network_state_dict
 
     def create_from_csv(self, logical_network_csv_file_path, physical_network_csv_file_path, interactions_network_csv_file_path, pnodes_data, providers_csv="",
                         logical_provider_nodes=(), physical_provider_nodes=()):
@@ -134,6 +147,7 @@ class InterdependentGraph(object):
             len([a for a in self.logical_network.vs if self.logical_network.degree(a.index) > 0])
 
         self._set_rosettas()
+        self.reset_cascading_failure_state()
 
     def get_logical_network(self):
         """Returns the logical network of the InterdependentGraph object
@@ -300,6 +314,7 @@ class InterdependentGraph(object):
             len([a for a in self.logical_network.vs if self.logical_network.degree(a.index) > 0])
 
         self._set_rosettas()
+        self.reset_cascading_failure_state()
         return self
 
     def remove_physical_nodes(self, nodes_to_delete):
@@ -331,9 +346,6 @@ class InterdependentGraph(object):
         n_logic_nodes = len(self.logical_network.vs['name'])
         n_inter_nodes = len(self.interactions_network.vs['name'])
 
-        # TODO
-        current_state = {}
-
         # Variable to save the number of iterations until stabilized
         number_of_iterations = 0
         # we also track the G_L associated to each iteration
@@ -342,9 +354,9 @@ class InterdependentGraph(object):
         # We represent the state of each node in each network as True if
         #the node is alive, and False if it is no longer functional
         # The system starts with all nodes alive
-        phys_input = [True for i in range(n_phys_nodes)]
-        logic_input = [True for i in range(n_logic_nodes)]
-        inter_input = [True for i in range(n_inter_nodes)]
+        phys_input = self.current_network_state["phys_input"]
+        logic_input = self.current_network_state["logic_input"]
+        inter_input = self.current_network_state["inter_input"]
 
         # physical nodes to be deleted in the current iteration
         current_phys_nodes_to_delete = []
@@ -439,9 +451,9 @@ class InterdependentGraph(object):
             current_logic_nodes_to_delete = list(current_logic_nodes_to_delete_dict)
 
             # update state to return it
-            current_state["phys_input"] = phys_input.copy()
-            current_state["logic_input"] = logic_input.copy()
-            current_state["inter_input"] = inter_input.copy()
+            self.current_network_state["phys_input"] = phys_input.copy()
+            self.current_network_state["logic_input"] = logic_input.copy()
+            self.current_network_state["inter_input"] = inter_input.copy()
 
             number_of_iterations += 1
             GL_per_iteration.append(numpy.round(1 - len(current_logic_nodes_to_delete) / 300.0, 4))
