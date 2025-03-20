@@ -12,6 +12,10 @@ To properly function the igraph library must be available, as well as csv.
 from __future__ import annotations
 import igraph
 import csv
+
+from psutil import users
+from setuptools.command.build_ext import use_stubs
+
 import csv_utils
 import numpy
 from abstract_attack import AbstractAttack
@@ -52,15 +56,25 @@ class InterdependentGraph(object):
                               "inter_input": [True for i in range(n_inter_nodes)]}
         return network_state_dict
 
-    def get_lost_physical_nodes(self):
+    def _get_nodes_lost(self, mode):
         node_list = []
-        inverse_rosetta = dict([(v, [k for k, v1 in self.physical_rosetta.items() if v1 == v][0])
-                      for v in set(self.physical_rosetta.values())])
-        phys_input = self.current_network_state["phys_input"]
+        if mode == "phys_input":
+            use_rosetta = self.physical_rosetta
+        else:
+            use_rosetta = self.logical_rosetta
+        inverse_rosetta = dict([(v, [k for k, v1 in use_rosetta.items() if v1 == v][0])
+                                for v in set(use_rosetta.values())])
+        phys_input = self.current_network_state[mode]
         for i in range(len(phys_input)):
             if not phys_input[i]:
                 node_list.append(inverse_rosetta[i])
         return node_list
+
+    def get_lost_physical_nodes(self):
+        return self._get_nodes_lost("phys_input")
+
+    def get_lost_logical_nodes(self):
+        return self._get_nodes_lost("logic_input")
 
     def create_from_csv(self, logical_network_csv_file_path, physical_network_csv_file_path, interactions_network_csv_file_path, pnodes_data, providers_csv="",
                         logical_provider_nodes=(), physical_provider_nodes=()):
@@ -350,16 +364,11 @@ class InterdependentGraph(object):
         #  - logic nodes removed should be returned
         #####
 
-        phys_nodes_to_delete = nodes_to_delete
-        logic_nodes_to_delete = []
-
         # get number of nodes in each network
         n_phys_nodes = len(self.physical_network.vs['name'])
         n_logic_nodes = len(self.logical_network.vs['name'])
         n_inter_nodes = len(self.interactions_network.vs['name'])
 
-        # Variable to save the number of iterations until stabilized
-        number_of_iterations = 0
         # we also track the G_L associated to each iteration
         GL_per_iteration = []
 
@@ -369,6 +378,23 @@ class InterdependentGraph(object):
         phys_input = self.current_network_state["phys_input"]
         logic_input = self.current_network_state["logic_input"]
         inter_input = self.current_network_state["inter_input"]
+
+
+        # these nodes will be removed from each network
+        phys_nodes_to_delete = []
+        logic_nodes_to_delete = []
+
+        # using the network state saved the nodes to be removed
+        # are updated.
+        physical_nodes_lost_in_previous_state = self.get_lost_physical_nodes()
+        nodes_to_delete_aux = list(set(nodes_to_delete).union(set(physical_nodes_lost_in_previous_state)))
+        for pnode_name in nodes_to_delete_aux:
+            phys_nodes_to_delete.append(self.physical_rosetta[pnode_name])
+        phys_nodes_to_delete.sort()
+
+        # then logic nodes are considered. These may come from a previous iteration
+        for lnode_name in self.get_lost_logical_nodes():
+            logic_nodes_to_delete.append(self.logical_rosetta[lnode_name])
 
         # physical nodes to be deleted in the current iteration
         current_phys_nodes_to_delete = []
@@ -386,8 +412,10 @@ class InterdependentGraph(object):
                 break
 
             # update the nodes to be deleted in this iteration
-            phys_nodes_to_delete = current_phys_nodes_to_delete.copy()
-            logic_nodes_to_delete = current_logic_nodes_to_delete.copy()
+            if current_phys_nodes_to_delete != []:
+                phys_nodes_to_delete = current_phys_nodes_to_delete.copy()
+            if current_logic_nodes_to_delete != []:
+                logic_nodes_to_delete = current_logic_nodes_to_delete.copy()
 
             # Delete the nodes to delete on each network, including the interactions network
             for pnode in phys_nodes_to_delete:
@@ -459,15 +487,16 @@ class InterdependentGraph(object):
                         current_phys_nodes_to_delete_set.add(p_index)
 
             current_phys_nodes_to_delete = list(current_phys_nodes_to_delete_set)
+            current_phys_nodes_to_delete.sort()
             current_logic_nodes_to_delete = list(current_logic_nodes_to_delete_set)
+            current_logic_nodes_to_delete.sort()
 
             # update state to return it
             self.current_network_state["phys_input"] = phys_input.copy()
             self.current_network_state["logic_input"] = logic_input.copy()
             self.current_network_state["inter_input"] = inter_input.copy()
 
-            number_of_iterations += 1
-            GL_per_iteration.append(numpy.round(1 - len(current_logic_nodes_to_delete) / 300.0, 4))
+            GL_per_iteration.append(numpy.round(1 - len(current_logic_nodes_to_delete) / n_logic_nodes, 4))
         return GL_per_iteration
 
     @staticmethod
