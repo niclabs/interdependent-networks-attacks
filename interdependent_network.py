@@ -37,6 +37,8 @@ class InterdependentGraph(object):
         self.inter_rosetta_logical = dict()
         self.inner_inter_rosetta = dict()
         self.current_network_state = dict()
+        self.physical_nodes_lost = []
+        self.logical_nodes_lost = []
 
     def reset_cascading_failure_state(self):
         self.current_network_state = self._initialize_network_state()
@@ -49,6 +51,16 @@ class InterdependentGraph(object):
                               "logic_input": [True for i in range(n_logic_nodes)],
                               "inter_input": [True for i in range(n_inter_nodes)]}
         return network_state_dict
+
+    def get_lost_physical_nodes(self):
+        node_list = []
+        inverse_rosetta = dict([(v, [k for k, v1 in self.physical_rosetta.items() if v1 == v][0])
+                      for v in set(self.physical_rosetta.values())])
+        phys_input = self.current_network_state["phys_input"]
+        for i in range(len(phys_input)):
+            if not phys_input[i]:
+                node_list.append(inverse_rosetta[i])
+        return node_list
 
     def create_from_csv(self, logical_network_csv_file_path, physical_network_csv_file_path, interactions_network_csv_file_path, pnodes_data, providers_csv="",
                         logical_provider_nodes=(), physical_provider_nodes=()):
@@ -425,30 +437,29 @@ class InterdependentGraph(object):
                     break
             # update lists of nodes lost
             # Add them to the nodes to delete on the next iteration
-            current_phys_nodes_to_delete_dict = set()
-            current_logic_nodes_to_delete_dict = set()
+            current_phys_nodes_to_delete_set = set()
+            current_logic_nodes_to_delete_set = set()
 
             for pnode in range(n_phys_nodes):
                 if not phys_input[pnode]:
-                    current_phys_nodes_to_delete_dict.add(pnode)
+                    current_phys_nodes_to_delete_set.add(pnode)
 
             for lnode in range(n_logic_nodes):
                 if not logic_input[lnode]:
-                    current_logic_nodes_to_delete_dict.add(lnode)
+                    current_logic_nodes_to_delete_set.add(lnode)
 
             for inode in range(n_inter_nodes):
                 if not inter_input[inode]:
                     inode_name = self.interactions_network.vs['name'][inode]
                     if inode_name in self.inter_rosetta_logical.keys():
                         l_index = self.inter_rosetta_logical[inode_name]
-                        current_logic_nodes_to_delete_dict.add(l_index)
+                        current_logic_nodes_to_delete_set.add(l_index)
                     else:
                         p_index = self.inter_rosetta_physical[inode_name]
-                        current_phys_nodes_to_delete_dict.add(p_index)
+                        current_phys_nodes_to_delete_set.add(p_index)
 
-            current_phys_nodes_to_delete = list(current_phys_nodes_to_delete_dict)
-
-            current_logic_nodes_to_delete = list(current_logic_nodes_to_delete_dict)
+            current_phys_nodes_to_delete = list(current_phys_nodes_to_delete_set)
+            current_logic_nodes_to_delete = list(current_logic_nodes_to_delete_set)
 
             # update state to return it
             self.current_network_state["phys_input"] = phys_input.copy()
