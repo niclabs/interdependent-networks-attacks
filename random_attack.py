@@ -2,7 +2,6 @@ from __future__ import annotations
 from abstract_attack import AbstractAttack
 import interdependent_network as ig
 import random
-import time
 
 class PhysicalRandomAttack(AbstractAttack):
 
