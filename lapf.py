@@ -24,7 +24,6 @@ class ProbabilisticLocalizedAttack(AbstractAttack):
             nodes_to_attack = []  # name list
             # determine nodes within the targeted area
             for vertex in physical_network.vs:
-                print(type(vertex))
                 if self.probability_function(vertex, param):
                     nodes_to_attack.append(vertex["name"])
 
