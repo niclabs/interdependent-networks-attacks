@@ -11,9 +11,14 @@ class SoilMap(object):
         """ Saves a matrix of the velocity below 30 meters of the ground,
         a function for soil values, and the dimensions of the space.
 
-        :param vs30_matrix: TODO
-        :param soil_values: TODO
-        :param space_dimensions: TODO
+        :param vs30_matrix: list
+            matrix (list of lists) of average shear wave velocity down to
+            30m depth for the map being represented
+        :param soil_values: function
+            it returns the soil coefficient associated to a given vs30
+            (average shear wave velocity down to 30m depth)
+        :param space_dimensions: tuple
+            width and length of the space being modeled (width, length)
         """
         self.space_dimensions = space_dimensions
         self.vs30_matrix = vs30_matrix
@@ -42,6 +47,7 @@ class SoilMap(object):
             x_step = space_x/x_len
             x_bucket = int(x//x_step)
             vs30_value = self.vs30_matrix[y_bucket][x_bucket]
+            # assign vs30 and soil coefficient value to each node
             node["vs30"] = vs30_value
             node["soil"] = self.soil_values(vs30_value)
 
