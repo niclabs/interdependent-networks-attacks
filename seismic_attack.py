@@ -109,7 +109,7 @@ class SeismicAttack(ProbabilisticLocalizedAttack):
         H = params["depth"]
         Feve = params["event_type"]
 
-        pga_value = sdp.get_chile_pga2(Mw, H, Feve, R, St_t, Vs30)  # (Mw, H, Feve, R, St_t, Vs30)
+        pga_value = sdp.get_chile_pga_T03(Mw, H, Feve, R, St_t, Vs30)  # (Mw, H, Feve, R, St_t, Vs30)
         # DEBUG
         debug = False
         if debug:
@@ -117,7 +117,7 @@ class SeismicAttack(ProbabilisticLocalizedAttack):
             aux_Mw = 0.8
             pga_list = {}
             while aux_Mw < 10:
-                aux_pga = sdp.get_chile_pga2(aux_Mw, H, Feve, R, St_t, Vs30)
+                aux_pga = sdp.get_chile_pga_T03(aux_Mw, H, Feve, R, St_t, Vs30)
                 pga_list[aux_Mw] = aux_pga
                 if aux_Mw < 1:
                     print("Mw {}, pga ratio: {}, pga {}".format(round(aux_Mw, 1), 1, round(pga_list[aux_Mw] * 10 ** 9, 1)))
@@ -131,7 +131,7 @@ class SeismicAttack(ProbabilisticLocalizedAttack):
         if mode == "linear":
             failure_probability = sdp.linear_shindo_scale_probability(pga_value)
         else:
-            failure_probability = sdp.shindo_scale_probability(pga_value)
+            failure_probability = sdp.stair_shindo_scale_probability(pga_value)
 
         return random.uniform(0, 1) <= failure_probability
 
