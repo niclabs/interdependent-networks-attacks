@@ -1,3 +1,7 @@
+"""
+This script contains all the necessary functions to process and extract
+seismic data from an image.
+"""
 from PIL import Image
 
 
@@ -16,6 +20,14 @@ def brightness(color):
 
 
 def load_scale(img_name):
+    """ Loads image stored in img_name and returns a list with the color
+    values.
+
+    :param img_name: str
+        file path to image
+    :return: list
+        contains color/image values
+    """
     no_color = (0,0,0,0)
     im = Image.open(img_name)  # Can be many different formats.
     pix = im.load()
@@ -39,7 +51,7 @@ def find_closest_color(color, colore_set):
     gray_2 = (205,208,211,255)
     gray_3 = (220, 227, 226, 255)
 
-    discard_colors = [sky_blue, blue, ice_white,black, gray]
+    discard_colors = [sky_blue, blue, ice_white, black, gray]
     min_diff = 500
     min_c = color
     for c in colore_set:
@@ -57,6 +69,21 @@ def find_closest_color(color, colore_set):
 
 
 def create_values_matrix(img_name, scale_name, max_value, min_value):
+    """ Returns a matrix with values assigned according to the image
+    colors. The values are numerical and range between min_value and
+    max_value.
+
+    :param img_name: str
+        path to image
+    :param scale_name: str
+        path to color scale
+    :param max_value: float
+        maximum numerical value for image in scale_name
+    :param min_value: float
+        minimum numerical value for image in scale_name
+    :return: list
+        contains lists with numerical values (matrix).
+    """
     scale_values = load_scale(scale_name)
     values_matrix = []
     # create values list
@@ -86,29 +113,4 @@ def create_values_matrix(img_name, scale_name, max_value, min_value):
         if len(values_matrix[y]) > 0 :
             final_matrix.append(values_matrix[y])
     return final_matrix
-
-def aux(name, save_name):
-    scale = load_scale('map_scale2.png')
-    white = (255, 255, 255, 255)
-    im = Image.open(name) # Can be many different formats.
-    pix = im.load()
-    max_x, max_y = im.size
-    print(im.size)  # Get the width and hight of the image for iterating over
-
-    total = max_y * max_x
-    i = 0
-    for y in range(max_y):
-        for x in range(max_x):
-            if pix[x,y] != white:
-                pix[x, y] = find_closest_color(pix[x, y], scale) # Set the RGBA Value of the image (tuple)
-                i += 1
-                percent = (i*100.0)/total
-                print("{}%".format(percent), flush=True)
-
-
-
-    im.save(save_name)  # Save the modified pixels as .png
-
-
-#vs30_matrix = create_values_matrix("m_full_map.png", 'map_scale2.png', 2200, 0)
 
