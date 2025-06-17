@@ -12,6 +12,7 @@ class SeismicAttack(ProbabilisticLocalizedAttack):
 
     space_dimensions = (0, 0)
     seismic_data_file = ""
+    pga_failure_function = None
 
     @staticmethod
     @override
@@ -79,24 +80,20 @@ class SeismicAttack(ProbabilisticLocalizedAttack):
     def set_seismic_data_file(self, file_path):
         self.seismic_data_file = file_path
 
-    @staticmethod
-    def seismic_probability_function_chile(vertex, params, mode="linear"):
-        """ Probability function to be used for seismic attacks.
+    def set_pga_failure_function(self, pga_failure_function):
+        self.pga_failure_function = pga_failure_function
 
-        TODO: set failure probability function as variable
+    def seismic_probability_function_chile(self, vertex, params):
+        """ Probability function to be used for seismic attacks.
 
         :param vertex: igraph.Vertex
             igraph object for vertex that contains local info associated
             to the node
         :param params: dict
             required parameter to determine failure probability of the vertex
-        :param mode: str
-            used to determine which function will be used to obtain the
-            probability of failure (will be refactored)
         :return: boolean
             represents whether the vertex fails or not
         """
-        # TODO: fix debugging code and functions for failure probability
         vertex_x = vertex["x_coordinate"]
         vertex_y = vertex["y_coordinate"]
         epicenter_x = params["epicenter"][0]
@@ -110,28 +107,8 @@ class SeismicAttack(ProbabilisticLocalizedAttack):
         Feve = params["event_type"]
 
         pga_value = sdp.get_chile_pga_T03(Mw, H, Feve, R, St_t, Vs30)  # (Mw, H, Feve, R, St_t, Vs30)
-        # DEBUG
-        debug = False
-        if debug:
-            print("------------- Feve: {}".format(Feve))
-            aux_Mw = 0.8
-            pga_list = {}
-            while aux_Mw < 10:
-                aux_pga = sdp.get_chile_pga_T03(aux_Mw, H, Feve, R, St_t, Vs30)
-                pga_list[aux_Mw] = aux_pga
-                if aux_Mw < 1:
-                    print("Mw {}, pga ratio: {}, pga {}".format(round(aux_Mw, 1), 1, round(pga_list[aux_Mw] * 10 ** 9, 1)))
-                else:
-                    print("Mw {}, pga ratio: {}, pga {}".format(round(aux_Mw, 1), round(pga_list[aux_Mw] / pga_list[round(aux_Mw - 1, 1)], 1), round(pga_list[aux_Mw] * 10 ** 9, 1)))
-                aux_Mw += 1
-            print("-------------")
 
-        # Usar SHINDO scale para las probabilidades
-        # notar que la escala no va a ser lineal
-        if mode == "linear":
-            failure_probability = sdp.linear_shindo_scale_probability(pga_value)
-        else:
-            failure_probability = sdp.stair_shindo_scale_probability(pga_value)
+        failure_probability = self.pga_failure_function(pga_value)
 
         return random.uniform(0, 1) <= failure_probability
 

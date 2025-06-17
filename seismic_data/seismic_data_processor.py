@@ -121,7 +121,7 @@ def linear_shindo_scale_probability(pga):
     :return: float
         failure probability (values between 0 and 1)
     """
-
+    print_as_progress_string("using linear_shindo")
     gravity_acceleration = 9.81
     # assign a value for tha 'shindo' scale
     max_ms_pga = 4  # TODO: Why saturates at 4? (I forgor :c )
@@ -278,3 +278,26 @@ def saturated_two_point_line_eq(max_val, point_1, point_2):
     linear_saturated_function = lambda x: (y2 - y1) * ((x - x1)/(x2 - x1)) + y1 if x <= max_val else 1.0
     return linear_saturated_function
 
+def log_function(pga_value):
+    print_as_progress_string("Using log")
+    return 0.22 * numpy.log(16.7 * pga_value)
+
+def sigmoid(pga_value):
+    print_as_progress_string("Sigmoid")
+    return 1 / (1 + numpy.e ** (-2.1 * (pga_value - 3.03)))
+
+def linear_alpha(pga_value):
+    print_as_progress_string("Using linear_alpha")
+    alpha = 0.7
+    return ((pga_value - 0.06)/(6.0 - 0.06)) ** alpha
+
+def print_as_progress_string(message):
+    """
+    Shows message and then deletes it.
+
+    It is meant to simulate something like a progress bar.
+
+    :param message: str
+    """
+    print("\b" * len(message), end="")
+    print(message, flush=True, end="")
