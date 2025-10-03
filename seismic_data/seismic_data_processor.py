@@ -279,15 +279,15 @@ def saturated_two_point_line_eq(max_val, point_1, point_2):
     return linear_saturated_function
 
 def log_function(pga_value):
-    print_as_progress_string("Using log")
+    #print_as_progress_string("Using log")
     return 0.22 * numpy.log(16.7 * pga_value)
 
 def sigmoid(pga_value):
-    print_as_progress_string("Sigmoid")
+    #print_as_progress_string("Sigmoid")
     return 1 / (1 + numpy.e ** (-2.1 * (pga_value - 3.03)))
 
 def linear_alpha(pga_value):
-    print_as_progress_string("Using linear_alpha")
+    #print_as_progress_string("Using linear_alpha")
     alpha = 0.7
     return ((pga_value - 0.06)/(6.0 - 0.06)) ** alpha
 

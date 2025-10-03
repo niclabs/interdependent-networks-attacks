@@ -35,7 +35,8 @@ class SeismicAttack(ProbabilisticLocalizedAttack):
                     "lnodes_removed": logical_nodes_removed,
                     "magnitude": params["magnitude"],
                     "depth": params["depth"],
-                    "event_type": params["event_type"]}
+                    "event_type": params["event_type"],
+                    "epicenter": params["epicenter"]}
         return res_dict
 
     @override
